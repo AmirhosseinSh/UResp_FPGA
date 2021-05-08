@@ -1,0 +1,66 @@
+
+library ieee; --allows use of the std_logic_vector type
+use ieee.std_logic_1164.all;
+--use ieee.numeric_std.all;
+--use ieee.std_logic_arith.all;
+
+--library lpm;  
+--USE lpm.lpm_components.all; --this library includes 32-bit adder
+
+entity USController is
+port (	
+      	CLK 		: in std_logic;
+	RST 		: in std_logic;
+	CLK_OUT		: out std_logic;
+	CLK_OUT22	: out std_logic;
+	CLK_OUT368	: out std_logic;
+	PCLK		: out std_logic;
+	NCLK		: out std_logic;
+	BTN1 		: in std_logic;
+	BTN2 		: in std_logic;
+	KEY0 		: in std_logic;
+	KEY1 		: in std_logic;
+	KEY2 		: in std_logic;		-- to change the mode
+	KEY3 		: in std_logic;		-- to change the fire lenght
+	OUT1Push 	: out std_logic;	-- Fitted envelop of the OUT1
+	OUT1RxEnv	: out std_logic;
+	MODE		: out std_logic_vector(1 downto 0);
+	OUT1P  		: out std_logic;
+	OUT1N  		: out std_logic;
+	OUT2P  		: out std_logic;
+	OUT2N  		: out std_logic;
+	OUT3P  		: out std_logic;
+	OUT3N  		: out std_logic;
+	OUT4P  		: out std_logic;
+	OUT4N  		: out std_logic;
+	DAC_VAL		: out std_logic_vector(7 downto 0);
+	DAC_WR 		: out std_logic;	
+	DAC_AB 		: out std_logic		-- '0' => Block 12(A), '1' => block 34(B)
+);
+end USController;
+
+
+
+architecture USController_arch of USController is
+
+signal ENABLE		: std_logic;
+signal Burst_EN		: std_logic;
+signal Counter		: integer;
+signal CLK2		: std_logic;
+signal CLK1		: std_logic;
+signal CLK_shifted	: std_logic;
+signal FIRE_EN		: std_logic;
+
+signal BTN2_DB		: std_logic;
+signal BTN1_DB		: std_logic;
+signal BTN2_i		: std_logic;
+signal BTN1_i		: std_logic;
+
+BEGIN
+
+
+ENABLE	 	<= KEY0;
+Burst_EN	<= KEY1 and KEY0;
+
+
+end USController_arch;
