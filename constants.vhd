@@ -21,11 +21,11 @@ constant PulseRepet_init : integer := 1;
 constant PRF_ini	 : integer := 10000-PulseRepet_init;   --12500 for 25ms , 25000 50ms
 constant CLK_ShiftReg_ini : integer :=2730; -- 2730 for CLK/2, 3276 for CLK/4, 3640 for CLK/6
 
-constant T_PRF : integer := 20000+1;	-- 40000 is 50Hz sampling, 20000 is 100Hz.
+constant T_PRF : integer := 40000+1;	-- 40000 is 50Hz sampling, 20000 is 100Hz.
 constant T_ON  : integer := 6;
 constant T_CLAMP  : integer := 6;
 constant T_DAMP  : integer := 6;
-constant T_RX : integer := 150;
+constant T_RX : integer := 350;
 constant T_OFF : integer := T_PRF;
 --constant T_OFF : integer := T_PRF - T_ON - T_CLAMP - T_DAMP;
 

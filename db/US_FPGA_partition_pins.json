@@ -28,22 +28,6 @@
 					"strict" : false
 				},
 				{
-					"name" : "GPIO_1[2]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_1[3]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_1[4]",
-					"strict" : false
-				},
-				{
-					"name" : "GPIO_1[5]",
-					"strict" : false
-				},
-				{
 					"name" : "GPIO_1[6]",
 					"strict" : false
 				},
@@ -117,14 +101,6 @@
 				},
 				{
 					"name" : "FPGA_CLK1_50",
-					"strict" : false
-				},
-				{
-					"name" : "SW[3]",
-					"strict" : false
-				},
-				{
-					"name" : "SW[2]",
 					"strict" : false
 				},
 				{
