@@ -21,8 +21,8 @@ port (
 	BTN2 		: in std_logic;
 	KEY0 		: in std_logic;
 	KEY1 		: in std_logic;
-	KEY8 		: in std_logic;		-- to change the mode
-	KEY9 		: in std_logic;		-- to change the fire lenght
+	KEY2 		: in std_logic;		-- to change the mode
+	KEY3 		: in std_logic;		-- to change the fire lenght
 	OUT1Push 	: out std_logic;	-- Fitted envelop of the OUT1
 	OUT1RxEnv	: out std_logic;
 	MODE		: out std_logic_vector(1 downto 0);
@@ -37,9 +37,7 @@ port (
 	DAC_VAL		: out std_logic_vector(7 downto 0);
 	DAC_WR 		: out std_logic;	
 	DAC_AB 		: out std_logic;		-- '0' => Block 12(A), '1' => block 34(B)
-	LED0			: out std_logic;
-	LED1			: out std_logic;
-	LED2			: out std_logic
+	LEDs			: out std_logic_vector(7 downto 0)
 );
 end USController;
 
@@ -55,8 +53,6 @@ port (
 	CLK2  		: out std_logic;
 	CLK1M  		: out std_logic;	-- Clock 2.2 MHZ
 	CLKxM 		: out std_logic;	-- Clock 3.68 MHZ
-	SHIFT_INDEX	: in  std_logic_vector(5 downto 0);
-	CLK1Shift	: out std_logic;
 	CLK1  		: out std_logic	
 			);
 end component;
@@ -87,7 +83,6 @@ signal Counter		: integer;
 signal CLK_xM		: std_logic;
 signal CLK_1M		: std_logic;
 signal CLK1		: std_logic;
-signal CLK_shifted	: std_logic;
 signal FIRE_EN		: std_logic;
 
 signal BTN2_DB		: std_logic;
@@ -100,25 +95,25 @@ signal DAC_VAL_i	: std_logic_vector(7 downto 0);
 signal DAC_WR_i		: std_logic;
 signal DAC_TIME_REF	: std_logic;
 signal DAC_TIME_Count	: std_logic_vector(2 downto 0);
-signal SHIFT_INDEX_i	: std_logic_vector(5 downto 0);
 
 signal KEY8_i			:std_logic;
 signal KEY9_i			:std_logic;
-signal KEY2			:std_logic;
-signal KEY3			:std_logic;
+signal KEY0_i			:std_logic;
+signal KEY1_i			:std_logic;
+signal KEY2_i			:std_logic;
+signal KEY3_i			:std_logic;
+signal LEDs_i		:std_logic_vector(7 downto 0);
 BEGIN
 
 B0: CLKDivider 
 port map(    
 	CLK 	=> CLK,	     
 	RST 	=> RST,
-	ENABLE 	=> ENABLE,
+	ENABLE 	=> '1',
 	CLK2	=> CLK_OUT22,
 	CLK1M	=> CLK_1M,
 --	CLKxM	=> CLK_xM,
 	CLKxM	=> open,
-	SHIFT_INDEX => SHIFT_INDEX_i,
-	CLK1shift=> CLK_shifted,
 	CLK1	=> CLK1
 	);
   
@@ -145,37 +140,45 @@ with OP_MODE select
 	"10" when LEVEL5,
 	"11" when TR_DISABLE;
 
-KEY8_i <= '0';
-KEY9_i <= '1';
---CLK_1M		<= CLK_xM;					-- Use this line when the sensor is 1 MHz, to share the same CLK
-CLK_xM		<= CLK_1M;
-LED0			<= Burst_EN;
-LED1			<= ((FIRE_EN and CLK_xM) or OUT1CM);
-LED2			<= FIRE_EN;
-ENABLE	 	<= KEY0;
-Burst_EN	<= KEY1 and KEY0;
+KEY8_i 			<= '0';
+KEY9_i 			<= '1';
+--CLK_1M			<= CLK_xM;					-- Use this line when the sensor is 1 MHz, to share the same CLK
+CLK_xM			<= CLK_1M;
+LEDs_i(0)		<= Burst_EN;
+LEDs_i(1)		<= ((FIRE_EN and CLK_xM) or OUT1CM);
+LEDs_i(2)		<= FIRE_EN;
+
+LEDs_i(4)		<= KEY0_i;
+LEDs_i(5)		<= KEY1_i;
+LEDs_i(6)		<= KEY2_i;
+LEDs_i(7)		<= KEY3_i;
+LEDs				<= LEDs_i;
+
+Burst_EN			<= KEY0_i;
 --CLK_OUT		<= CLK1;
-CLK_OUT		<= CLK_shifted;	-- shifted phase of a 1 MHz clock
-PCLK		<= CLK_xM and KEY3;
-NCLK		<= not(CLK_xM) and KEY3;
+KEY0_i			<= KEY0;
+KEY1_i			<= KEY1;
+KEY2_i			<= KEY2;
+KEY3_i			<= KEY3;
+PCLK				<= CLK_xM and KEY3;
+NCLK				<= not(CLK_xM) and KEY3;
 
-BTN1_i		<= not(BTN1);
-BTN2_i		<= not(BTN2);
-DAC_VAL		<= DAC_VAL_i;
-DAC_WR		<= DAC_TIME_REF;
-OUT1N		<= ((FIRE_EN and CLK_xM) or OUT1CM);
-OUT1P		<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM);
-OUT1Push	<= FIRE_EN;
+BTN1_i			<= not(BTN1);
+BTN2_i			<= not(BTN2);
+DAC_VAL			<= DAC_VAL_i;
+DAC_WR			<= DAC_TIME_REF;
+OUT1N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
+OUT1P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
+OUT1Push			<= FIRE_EN;
 
-OUT2N		<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
-OUT2P		<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM)and '0';
-OUT3N		<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
-OUT3P		<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and '0';
-OUT4N		<= ((FIRE_EN and CLK_xM) or OUT1CM) ;
-OUT4P		<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM);
+OUT2N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
+OUT2P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM)and '0';
+OUT3N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
+OUT3P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and '0';
+OUT4N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
+OUT4P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
 
-KEY3		<= '1';
-KEY2		<= '0';
+
 Time_Source: process(RST,CLK_xM)
 begin                                                     
 if (RST = '0') then	
@@ -187,7 +190,7 @@ elsif((CLK_xM ='1') and CLK_xM'event) then --clock is rising edge
 		Counter <= Counter + 1;
 		if (Counter = T_PRF) then Counter <= 0; end if;
 
-		if(DAC_TIME_Count = b"101") then
+		if(DAC_TIME_Count = b"111") then
 			DAC_TIME_REF <= '1';
 			DAC_TIME_Count <= b"000";
 		else
@@ -288,7 +291,7 @@ case GenStages is
 
 		if (Counter < (T_DAMP + T_ON + T_CLAMP + T_RX))  then
 			OUT1CM <= '1'; 
-			if (KEY2 = '1') then OP_MODE <= TR_DISABLE;
+			if (KEY2_i = '1') then OP_MODE <= TR_DISABLE;
 			else OP_MODE <= LEVEL3; end if;	
 	else
 		
@@ -338,22 +341,6 @@ end case;
 end if;
 end process;
 
-
--- To control the shift using BTN2 and BTN1,
-ShiftIndex_Gen: process(RST,CLK_xM)
-begin                                                     
-if (RST = '0') then	
-
-	SHIFT_INDEX_i <= b"001000";
-elsif((CLK_xM ='1') and CLK_xM'event) then --clock is rising edge
-
-	if ((BTN2_DB = '1') and ((SHIFT_INDEX_i < b"110001"))) then 
-		SHIFT_INDEX_i <= std_logic_vector(unsigned(SHIFT_INDEX_i) + 1);
-	elsif ((BTN1_DB = '1') and (SHIFT_INDEX_i > b"000000")) then 
-		SHIFT_INDEX_i <= std_logic_vector(unsigned(SHIFT_INDEX_i) - 1);
-	end if;
-end if;
-end process;
 
 
 end USController_arch;

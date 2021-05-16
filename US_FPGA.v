@@ -65,8 +65,8 @@ module US_FPGA(
 			.BTN2				(KEY[1]), 			
 			.KEY0 			(SW[0]),		
 			.KEY1 			(SW[1]), 		
-			.KEY8 			(SW[2]), 		
-			.KEY9 			(SW[3]), 		
+			.KEY2 			(SW[2]), 		
+			.KEY3 			(SW[3]), 		
 			.OUT1Push 		(GPIO_1[30]),
 			.OUT1RxEnv 		(GPIO_1[32]),	
 			//.MODE[0]			(GPIO_1[19]),		
@@ -83,9 +83,7 @@ module US_FPGA(
 			.DAC_VAL			({GPIO_1[21],GPIO_1[23],GPIO_1[25],GPIO_1[27],GPIO_1[29],GPIO_1[31],GPIO_1[33],GPIO_1[35]}),	
 			.DAC_WR 	 		(GPIO_1[20]),	
 			.DAC_AB 	 		(GPIO_1[22]),
-			.LED0				(LED[0]),
-			.LED1				(LED[1]),
-			.LED2				(LED[2])
+			.LEDs				(LED)
 				
 	);
 
