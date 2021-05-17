@@ -13,6 +13,8 @@ module US_FPGA(
 
 	//////////// ARDUINO //////////
 	inout 		    [15:0]		ARDUINO_IO,
+	//input 		    [2:0]		ARDUINO_IOI,
+	//output 		    [15:3]		ARDUINO_IOO,
 	inout 		          		ARDUINO_RESET_N,
 	
 	//////////// CLOCK //////////
@@ -56,7 +58,7 @@ module US_FPGA(
 	USController (
 			.CLK 				(FPGA_CLK1_50),
 			.RST 				(KEY[0]),
-			.CLK_OUT			(GPIO_1[34]),
+			.CLK_OUT			(GPIO_1[30]),
 			.CLK_OUT22		(GPIO_0[34]),
 			.CLK_OUTxM		(GPIO_0[33]),
 			.PCLK				(GPIO_1[17]),
@@ -67,8 +69,10 @@ module US_FPGA(
 			.KEY1 			(SW[1]), 		
 			.KEY2 			(SW[2]), 		
 			.KEY3 			(SW[3]), 		
-			.OUT1Push 		(GPIO_1[30]),
-			.OUT1RxEnv 		(GPIO_1[32]),	
+			.IN_ENV			(GPIO_1[34]),
+			.OUT_ENV			(GPIO_1[32]),
+			.OUT1Push 		(GPIO_1[24]),
+			.OUT1RxEnv 		(GPIO_1[26]),	
 			//.MODE[0]			(GPIO_1[19]),		
 			//.MODE[1]			(GPIO_1[18]),		
 			.MODE				({GPIO_1[18],GPIO_1[19]}),		

@@ -21,8 +21,10 @@ port (
 	BTN2 		: in std_logic;
 	KEY0 		: in std_logic;
 	KEY1 		: in std_logic;
-	KEY2 		: in std_logic;		-- to change the mode
-	KEY3 		: in std_logic;		-- to change the fire lenght
+	KEY2 		: in std_logic;		
+	KEY3 		: in std_logic;		
+	IN_ENV	: IN std_logic;
+	OUT_ENV	: out std_logic;
 	OUT1Push 	: out std_logic;	-- Fitted envelop of the OUT1
 	OUT1RxEnv	: out std_logic;
 	MODE		: out std_logic_vector(1 downto 0);
@@ -84,13 +86,14 @@ signal CLK_xM		: std_logic;
 signal CLK_1M		: std_logic;
 signal CLK1		: std_logic;
 signal FIRE_EN		: std_logic;
-
 signal BTN2_DB		: std_logic;
 signal BTN1_DB		: std_logic;
 signal BTN2_i		: std_logic;
 signal BTN1_i		: std_logic;
-
+signal OUT_ENV_i	: std_logic;
 signal OUT1CM		: std_logic;
+signal OUT1RxEnv_i: std_logic;
+
 signal DAC_VAL_i	: std_logic_vector(7 downto 0);
 signal DAC_WR_i		: std_logic;
 signal DAC_TIME_REF	: std_logic;
@@ -155,7 +158,7 @@ LEDs_i(7)		<= KEY3_i;
 LEDs				<= LEDs_i;
 
 Burst_EN			<= KEY0_i;
---CLK_OUT		<= CLK1;
+CLK_OUT			<= CLK_1M;
 KEY0_i			<= KEY0;
 KEY1_i			<= KEY1;
 KEY2_i			<= KEY2;
@@ -167,6 +170,9 @@ BTN1_i			<= not(BTN1);
 BTN2_i			<= not(BTN2);
 DAC_VAL			<= DAC_VAL_i;
 DAC_WR			<= DAC_TIME_REF;
+OUT_ENV_i		<= IN_ENV and OUT1RxEnv_i and CLK_xM;
+OUT_ENV			<= OUT_ENV_i;
+OUT1RxEnv		<= OUT1RxEnv_i;
 OUT1N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
 OUT1P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
 OUT1Push			<= FIRE_EN;
@@ -209,7 +215,7 @@ if (RST = '0') then
   OP_MODE 	<= LEVEL3;
   GenStages 	<= BURST_OFF;
   OUT1CM	<= '0';
-  OUT1RxEnv	<= '0';
+  OUT1RxEnv_i	<= '0';
   DAC_VAL_i <= (b"00110100");
   DAC_WR_i	<= '0';
   DAC_AB		<= '1';
@@ -246,7 +252,6 @@ case GenStages is
 	when BURST_ON =>
 		if (Counter < T_ON)  then
 			FIRE_EN <= '1';    		
-			
 		  
 		--elsif (Counter < T_OFF)  then
 			--FIRE_EN <= '0';
@@ -287,21 +292,21 @@ case GenStages is
 	when BURST_RX =>
 
 
-		OUT1RxEnv <= '1';
+		OUT1RxEnv_i <= '1';
 
 		if (Counter < (T_DAMP + T_ON + T_CLAMP + T_RX))  then
-			OUT1CM <= '1'; 
-			if (KEY2_i = '1') then OP_MODE <= TR_DISABLE;
-			else OP_MODE <= LEVEL3; end if;	
-	else
-		
-	
-			
-			GenStages <= BURST_HALT;
-			OP_MODE <= TR_DISABLE;
-			FIRE_EN <= '0';
-			OUT1CM <= '0'; 
-			OUT1RxEnv <= '0';
+			OUT1CM 	<= '1'; 
+			if (KEY2_i = '1') then 
+				OP_MODE <= TR_DISABLE;
+			else 
+				OP_MODE <= LEVEL3; end if;	
+		else
+
+			GenStages 	<= BURST_HALT;
+			OP_MODE 		<= TR_DISABLE;
+			FIRE_EN 		<= '0';
+			OUT1CM 		<= '0'; 
+			OUT1RxEnv_i	<= '0';
 		end if;			
 		if ((DAC_TIME_REF = '1')and (DAC_VAL_i < b"01111000")) then
 			if (DAC_VAL_i < b"00110111") then
@@ -329,7 +334,6 @@ case GenStages is
 		end if;
 		-- wait for a few multiple times than the BURST_ON.
 		  --OP_MODE <= TR_DISABLE;
-
 
 	when RX_ONLY =>
 
