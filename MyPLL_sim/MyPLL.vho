@@ -233,7 +233,7 @@
 		n_cnt_odd_div_duty_en => "false",
 		number_of_clocks => 2,
 		operation_mode => "direct",
-		output_clock_frequency0 => "3.680000 MHz",
+		output_clock_frequency0 => "2.200000 MHz",
 		output_clock_frequency1 => "1.000000 MHz",
 		output_clock_frequency10 => "0 MHz",
 		output_clock_frequency11 => "0 MHz",

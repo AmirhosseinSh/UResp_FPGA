@@ -5,8 +5,8 @@ JedecChain;
 
 	P ActionCode(Ign)
 		Device PartName(SOCVHPS) MfrSpec(OpMask(0));
-	P ActionCode(Cfg)
-		Device PartName(5CSEBA6U23) Path("C:/Users/ashahs/source/repos/UResp_FPGA/") File("US_FPGA_3.68MHz_50fps.sof") MfrSpec(OpMask(1));
+	P ActionCode(Ign)
+		Device PartName(5CSEBA6U23) MfrSpec(OpMask(0) FullPath("C:/Users/ashahs/source/repos/UResp_FPGA/HPS_FPGA_2MHz_50fps.sof"));
 
 ChainEnd;
 
