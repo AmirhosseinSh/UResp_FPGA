@@ -115,8 +115,8 @@ port map(
 	ENABLE 	=> '1',
 	CLK2	=> CLK_OUT22,
 	CLK1M	=> CLK_1M,
---	CLKxM	=> CLK_xM,
-	CLKxM	=> open,
+	CLKxM	=> CLK_xM,
+--	CLKxM	=> open,
 	CLK1	=> CLK1
 	);
   
@@ -146,7 +146,7 @@ with OP_MODE select
 KEY8_i 			<= '0';
 KEY9_i 			<= '1';
 --CLK_1M			<= CLK_xM;					-- Use this line when the sensor is 1 MHz, to share the same CLK
-CLK_xM			<= CLK_1M;
+--CLK_xM			<= CLK_1M;
 LEDs_i(0)		<= Burst_EN;
 LEDs_i(1)		<= ((FIRE_EN and CLK_xM) or OUT1CM);
 LEDs_i(2)		<= FIRE_EN;
@@ -177,10 +177,10 @@ OUT1N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
 OUT1P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
 OUT1Push			<= FIRE_EN;
 
-OUT2N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
-OUT2P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM)and '0';
-OUT3N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and '0';
-OUT3P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and '0';
+OUT2N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
+OUT2P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM)and KEY1_i;
+OUT3N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
+OUT3P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
 OUT4N				<= ((FIRE_EN and CLK_xM) or OUT1CM) and KEY1_i;
 OUT4P				<= ((FIRE_EN and (not(CLK_xM))) or OUT1CM) and KEY1_i;
 
@@ -191,6 +191,10 @@ if (RST = '0') then
 	Counter <= 0;
 	DAC_TIME_REF <= '0';
 	DAC_TIME_Count <= b"000";
+	DAC_VAL_i <= (b"00110100");
+	DAC_WR_i	<= '0';
+	DAC_AB		<= '1';
+  
 elsif((CLK_xM ='1') and CLK_xM'event) then --clock is rising edge
 	if (Burst_EN = '1') then
 		Counter <= Counter + 1;
@@ -203,6 +207,29 @@ elsif((CLK_xM ='1') and CLK_xM'event) then --clock is rising edge
 			DAC_TIME_REF <= '0';
 			DAC_TIME_Count <= std_logic_vector(unsigned(DAC_TIME_Count) + 1);
 		end if;
+		
+		case GenStages is
+		when BURST_RX =>
+		
+		if ((DAC_TIME_REF = '1')and (DAC_VAL_i < b"01111000")) then
+			if (DAC_VAL_i < b"00110111") then
+				DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) + 1);
+			else
+				DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) + 1);
+			end if;
+		end if;
+		--DAC_WR_i<= not(DAC_WR_i);
+		DAC_AB		<= '1';
+		
+		when BURST_HALT =>
+		if ((DAC_TIME_REF = '1') and not(DAC_VAL_i = b"00110100")) then
+			DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) - 1);
+		end if;
+		
+		when others => 
+		
+		end case;
+		
 	end if;
 end if;
 end process;
@@ -216,9 +243,7 @@ if (RST = '0') then
   GenStages 	<= BURST_OFF;
   OUT1CM	<= '0';
   OUT1RxEnv_i	<= '0';
-  DAC_VAL_i <= (b"00110100");
-  DAC_WR_i	<= '0';
-  DAC_AB		<= '1';
+
 
 elsif((CLK_xM ='1') and CLK_xM'event) then --clock is rising edge
 
@@ -259,41 +284,40 @@ case GenStages is
 		else
 			FIRE_EN <= '0';
 			OUT1CM <= '0';
-			--GenStages <= BURST_CLAMP;
-			GenStages <= BURST_RX;
+			GenStages <= BURST_CLAMP;
+			--GenStages <= BURST_RX;
 		end if;
 		
-	
-	when BURST_CLAMP =>
-		 -- OP_MODE <= LEVEL3;
-		if (Counter < (T_CLAMP + T_ON))  then
-			OUT1CM <= '0';    		
-		else
-			OUT1CM <= '1';    		
-		 	GenStages <= BURST_TR_SWITCH;
-		end if;	
-
-
-
-	when BURST_TR_SWITCH =>
+		
+	when BURST_CLAMP  =>
 
 		 -- OP_MODE <= TR_DISABLE;
 		 -- GenStages <= BURST_RX;
 
+		if (Counter < (T_CLAMP + T_ON))  then
+			OUT1CM <= '0'; 
+			OP_MODE <= TR_DISABLE;   		
+		else
+			OUT1CM <= '1';    		
+		 	GenStages <= BURST_TR_SWITCH;
+			
+		end if;	
+		
+	
+	when BURST_TR_SWITCH =>
+		 -- OP_MODE <= LEVEL3;
 		if (Counter < (T_DAMP + T_ON + T_CLAMP))  then
 			OUT1CM <= '1';    		
 		else
-			--OUT1CM <= '0';    		
-			
-		 	GenStages <= BURST_RX;
-			OP_MODE <= TR_DISABLE;
+			OUT1CM <= '1';    		
+		 	GenStages <= BURST_RX ;
 		end if;	
 
+
+
 	when BURST_RX =>
-
-
+	
 		OUT1RxEnv_i <= '1';
-
 		if (Counter < (T_DAMP + T_ON + T_CLAMP + T_RX))  then
 			OUT1CM 	<= '1'; 
 			if (KEY2_i = '1') then 
@@ -308,15 +332,7 @@ case GenStages is
 			OUT1CM 		<= '0'; 
 			OUT1RxEnv_i	<= '0';
 		end if;			
-		if ((DAC_TIME_REF = '1')and (DAC_VAL_i < b"01111000")) then
-			if (DAC_VAL_i < b"00110111") then
-				DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) + 1);
-			else
-				DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) + 1);
-			end if;
-		end if;
-		--DAC_WR_i<= not(DAC_WR_i);
-		DAC_AB		<= '1';
+
 
 
 	when BURST_HALT =>
@@ -329,9 +345,6 @@ case GenStages is
 			FIRE_EN <= '1';
 		end if;		
 
-		if ((DAC_TIME_REF = '1') and not(DAC_VAL_i = b"00110100")) then
-			DAC_VAL_i <= std_logic_vector(unsigned(DAC_VAL_i) - 1);
-		end if;
 		-- wait for a few multiple times than the BURST_ON.
 		  --OP_MODE <= TR_DISABLE;
 
